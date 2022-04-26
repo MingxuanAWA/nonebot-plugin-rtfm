@@ -98,7 +98,7 @@ _待补充_
 
 ## 🔒️许可
 
-本插件使用 [MIT 协议](https://github.com/MingxuanGame/nonebot-plugin-rtfm/blob/master/LICENSE) 开源
+本插件使用 [MIT 许可证](https://github.com/MingxuanGame/nonebot-plugin-rtfm/blob/master/LICENSE) 开源
 
 ```
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
