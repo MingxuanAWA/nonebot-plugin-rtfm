@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "nonebot-plugin-rtfm"
+version = "0.1.0"
+description = "A plugin for searching docs in QQ, use NoneBot and OneBot V11"
+authors = ["MingxuanGame <MingxuanGame@outlook.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/MingxuanGame/nonebot-plugin-rtfm"
+repository = "https://github.com/MingxuanGame/nonebot-plugin-rtfm"
+documentation = "https://github.com/MingxuanGame/nonebot-plugin-rtfm/blob/master/README.md#命令"
+keywords = ["nonebot", "onebot", "search", "plugin", "docs"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+algoliasearch = "^2.6.1"
+aiohttp = "^3.8.1"
+async-timeout = "^4.0.2"
+nonebot2 = "^2.0.0-beta.2"
+nonebot-adapter-onebot = "^2.0.0-beta.1"
+
+[tool.poetry.dev-dependencies]
+nonebug = "^0.2.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
