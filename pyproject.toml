@@ -9,6 +9,22 @@ homepage = "https://github.com/MingxuanGame/nonebot-plugin-rtfm"
 repository = "https://github.com/MingxuanGame/nonebot-plugin-rtfm"
 documentation = "https://github.com/MingxuanGame/nonebot-plugin-rtfm/blob/master/README.md#命令"
 keywords = ["nonebot", "onebot", "search", "plugin", "docs"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Plugins",
+    "Framework :: AsyncIO",
+    "Framework :: Robot Framework",
+    "Framework :: aiohttp",
+    "Intended Audience :: Other Audience",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: Chinese (Simplified)",
+    "Programming Language :: Python :: 3.8",
+    "Topic :: Documentation"
+]
+packages = [
+    { include = "nonebot_plugin_rtfm" },
+]
+exclude = ["tests"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
