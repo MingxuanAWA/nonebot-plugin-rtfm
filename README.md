@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://s2.loli.net/2022/05/01/fbZuQPidkqt6vjp.png">
+</p>
+
 <div align="center">
 
 <!-- prettier-ignore-start -->
@@ -12,11 +16,16 @@ _✨ NoneBot2 文档搜索插件 ✨_
 
 ## 🚀安装
 
-_目前暂未发布正式版，安装可通过 git 方式安装_
+此插件需要 **Python 3.8 及以上**
 
-此插件需要 *Python 3.8 及以上*
-
-_待补充_
+```bash
+# 通过 nb-cli
+nb plugin install nonebot-plugin-rtfm
+# 通过 poetry
+poetry add nonebot_plugin_rtfm
+# 通过 pip
+pip install nonebot_plugin_rtfm
+```
 
 ## 📝命令
 
@@ -50,6 +59,37 @@ _待补充_
 
 </details>
 
+### /插件列表
+
+#### 概述
+
+获取商店里的全部插件的简要信息，支持 `/page` 和 `戳一戳`
+
+#### 例子
+
+<details>
+<summary>图片</summary>
+
+![_J_T~YS6NJDRF61__6_8M~4.png](https://s2.loli.net/2022/04/27/lmLwqRY86yesfAM.png)
+
+</details>
+
+### /搜索插件 <关键字> [-t] [-n] [-a] [-d] [-p=[0-1]]
+
+**WIP：此功能尚未完成**
+
+#### 概述
+
+搜索插件列表的插件，支持 `/page` 和 `戳一戳`
+
+#### 参数
+
+- `-t`，`--without_tag` 查询时不使用标签查询
+- `-n`，`--without_name` 查询时不使用插件名称查询
+- `-a`，`--without_author` 查询时不使用作者名查询
+- `-d`，`--without_desc` 查询时不使用描述查询
+- `-p=[0-1]`，`--percent=[0-1]` 相似度，越接近1相似度越高
+
 ### /page <页码>
 
 #### 概述
@@ -79,13 +119,15 @@ _待补充_
 ## 🔧配置
 
 - rtfm_page
-    - 设置一条消息的结果数（默认：5）
+  - 设置一条消息的结果数（默认：5）
+- use_proxy
+  - 使用 `jsdelivr` 源获取插件信息（默认：True）
 
 ## 🚧预期加入功能
 
 - [ ] Python 文档查询
 - [ ] 插件文档查询（基于 [`nonebot-plugin-help`](https://github.com/XZhouQD/nonebot-plugin-help) 的文档接入方式）
-- [ ] 图片生成（预期使用 [`nonebot-plugin-htmlrender`](https://github.com/kexue-z/nonebot-plugin-htmlrender)）
+- [ ] 图片生成（预期使用 [`nonebot-plugin-htmlrender`](https://github.com/kexue-z/nonebot-plugin-htmlrender)或 `PIL`）
 - [ ] _More..._
 
 ## 🐛Bug 反馈或提交建议
