@@ -29,6 +29,7 @@ onebot_adapter = on_command("obrtfm")
 page_command = on_command("page")
 plugins_list = on_command("插件列表")
 search_plugins = on_shell_command("搜索插件", parser=parser)
+poke = on_notice()
 
 # session and config
 plugin_config = Config.parse_obj(get_driver().config)
@@ -48,7 +49,7 @@ onebot_adapter.__help_info__ = "搜索 OneBot 适配器 文档"
 page_command.__help_name__ = "page"
 page_command.__help_info__ = "查看缓存的指定页码的文档"
 
-__help_version__ = "0.2.0"
+__help_version__ = "0.2.2"
 __help_plugin_name__ = "NoneBot2 文档搜索"
 __usage__ = """NoneBot2 文档搜索
 命令：
@@ -170,6 +171,7 @@ async def search_manual(keyword: str, name: str, reject_times: int, matcher: Mat
     else:
         return
     search_result = await search(keyword, app_id, api_key, index_name)
+    last_use_plugins_list[user_id] = False
     if not search_result:
         if reject_times == 1:
             await matcher.reject(Message(f"未在 {name} 文档找到 {keyword}，请输入其他关键字"))
@@ -320,7 +322,7 @@ async def get_page_info(matcher: Matcher, event: MessageEvent, args: Message = C
         await matcher.finish("暂无缓存，请尝试搜索文档", at_sender=True)
 
 
-@on_notice().handle()
+@poke.handle()
 async def next_page(matcher: Matcher, event: PokeNotifyEvent):
     user_id = event.user_id
     if page := next_page_number.get(user_id):
