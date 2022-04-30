@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://s2.loli.net/2022/05/01/fbZuQPidkqt6vjp.png">
+</p>
+
 <div align="center">
 
 <!-- prettier-ignore-start -->
@@ -12,11 +16,16 @@ _✨ NoneBot2 文档搜索插件 ✨_
 
 ## 🚀安装
 
-_目前暂未发布正式版，可通过 git 方式安装_
-
 此插件需要 **Python 3.8 及以上**
 
-_待补充_
+```bash
+# 通过 nb-cli
+nb plugin install nonebot-plugin-rtfm
+# 通过 poetry
+poetry add nonebot_plugin_rtfm
+# 通过 pip
+pip install nonebot_plugin_rtfm
+```
 
 ## 📝命令
 
@@ -118,7 +127,7 @@ _待补充_
 
 - [ ] Python 文档查询
 - [ ] 插件文档查询（基于 [`nonebot-plugin-help`](https://github.com/XZhouQD/nonebot-plugin-help) 的文档接入方式）
-- [ ] 图片生成（预期使用 [`nonebot-plugin-htmlrender`](https://github.com/kexue-z/nonebot-plugin-htmlrender)）
+- [ ] 图片生成（预期使用 [`nonebot-plugin-htmlrender`](https://github.com/kexue-z/nonebot-plugin-htmlrender)或 `PIL`）
 - [ ] _More..._
 
 ## 🐛Bug 反馈或提交建议
