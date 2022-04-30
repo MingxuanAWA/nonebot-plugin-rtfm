@@ -1,14 +1,17 @@
-from typing import Set, List, Union
+from argparse import Namespace as BaseNamespace
+from typing import Set, List, Union, Optional
 
-from nonebot import on_command, get_driver, on_notice
+from nonebot import on_command, get_driver, on_notice, logger, on_shell_command
 from nonebot.adapters.onebot.v11 import Message, Event, MessageEvent, MessageSegment, PokeNotifyEvent
+from nonebot.exception import ParserExit
 from nonebot.internal.matcher import Matcher
 from nonebot.internal.params import ArgPlainText, Depends
-from nonebot.params import CommandArg
+from nonebot.params import CommandArg, ShellCommandArgs
 
 from .algolia import search, SearchResult
 from .config import Config
-from .plugins import get_plugins_list, Plugin
+from .parser import parser, Namespace
+from .plugins import get_plugins_list as base_get_plugins_list, Plugin, Plugins, Index
 
 # API Key
 NONEBOT2_APP_ID = "X0X5UACHZQ"
@@ -25,7 +28,7 @@ nonebot2 = on_command("rtfm")
 onebot_adapter = on_command("obrtfm")
 page_command = on_command("page")
 plugins_list = on_command("插件列表")
-search_plugins = on_command("插件列表")
+search_plugins = on_shell_command("搜索插件", parser=parser)
 
 # session and config
 plugin_config = Config.parse_obj(get_driver().config)
@@ -33,6 +36,7 @@ user_times = {"nonebot2": {}, "onebot_adapter": {}}
 next_page_number = dict()
 user_pages = dict()
 last_use_plugins_list = dict()
+index: Index
 
 # nonebot-plugin-help
 nonebot2.__help_name__ = "rtfm"
@@ -79,8 +83,43 @@ PLUGIN_TEMPLATE = """名称：{name}
 主页：{page}
 标签：{tags}"""
 
+# Messages
+SEARCH_PLUGIN_HELP = """帮助：
+用法：
+\t/搜索插件 <关键字> [-t] [-n] [-a] [-d] [-p=[0-1]]
 
-def save_pages(page: Union[Set[SearchResult], List[Plugin]], user_id: int, count: int):
+参数：
+\t-t，--without_tag 查询时不使用标签查询
+\t-n，--without_name 查询时不使用插件名称查询
+\t-a，--without_author 查询时不使用作者名查询
+\t-d，--without_desc 查询时不使用描述查询
+\t-p=[0-1]，--percent=[0-1] 相似度，越接近1相似度越高
+"""
+
+
+async def init_index():
+    global index
+    _plugins_list = await get_plugins_list()
+    if _plugins_list:
+        index = Index(_plugins_list)
+        logger.success("Build index success")
+    else:
+        index = None
+        logger.error("Can't build index")
+
+
+get_driver().on_startup(init_index)
+
+
+async def get_plugins_list() -> Union[Plugins, None]:
+    if plugin_config.use_proxy:
+        url = JSDELIVR
+    else:
+        url = GITHUB
+    return await base_get_plugins_list(url)
+
+
+def save_pages(page: Union[Set[SearchResult], Plugins], user_id: int, count: int):
     count -= 1
     user_pages[user_id] = []
     _temp = []
@@ -175,7 +214,32 @@ def get_message(page: List[SearchResult], page_number: int, max_number: int, is_
     return Message("\n".join(msg_list) + f"\n=== 第 {page_number} 页 / 共 {max_number} 页 ===")
 
 
-def get_plugins_message(page: List[Plugin], page_number: int, max_number: int) -> Message:
+def search_plugins_(keyword: str, no_tags: bool = False, no_name: bool = False, no_author: bool = False,
+                    no_desc: bool = False, percent: Optional[float] = None) -> Set[Plugin]:
+    _plugins: Plugins = []
+    if percent:
+        author_percent = desc_percent = percent
+    else:
+        percent = 0.6
+        author_percent = 0.7
+        desc_percent = 0.15
+
+    if not no_tags:
+        _plugins += index.search_by_tags(keyword, percent)
+
+    if not no_name:
+        _plugins += index.search_by_name(keyword, percent)
+
+    if not no_author:
+        _plugins += index.search_by_author(keyword, author_percent)
+
+    if not no_desc:
+        _plugins += index.search_by_desc(keyword, desc_percent)
+
+    return set(_plugins)
+
+
+def get_plugins_message(page: Plugins, page_number: int, max_number: int) -> Message:
     msg_list = Message()
     for i, result in enumerate(page):
         tags = [name.label for name in result.tags]
@@ -278,16 +342,52 @@ async def next_page(matcher: Matcher, event: PokeNotifyEvent):
 @plugins_list.handle()
 async def send_plugins_list(matcher: Matcher, event: MessageEvent):
     user_id = event.user_id
-    if plugin_config.use_proxy:
-        url = JSDELIVR
-    else:
-        url = GITHUB
-    _plugins_list = await get_plugins_list(url)
-    if not _plugins_list:
-        await matcher.finish("无法获取插件列表，可能是访问商店超时")
-    else:
-        save_pages(_plugins_list, user_id, plugin_config.rtfm_page)
+    if not index:
+        await init_index()
+    if not index:
+        await matcher.finish("索引初始化失败，可能是网络问题", at_sender=True)
+        return
+
+    _plugins_list = index.get_plugins()
+    save_pages(_plugins_list, user_id, plugin_config.rtfm_page)
+    pages = user_pages[user_id]
+    msg = get_plugins_message(pages[0], 1, len(pages))
+    last_use_plugins_list[user_id] = True
+    await matcher.finish(msg + "\n（使用 /page <页码> 查看指定页）")
+
+
+@search_plugins.handle()
+async def search_plugin_param_error(matcher: Matcher, args: ParserExit = ShellCommandArgs()):
+    msg = Message()
+    if args.status == 2:
+        msg.append(f"错误的调用：\n\t{args.message}\n")
+    msg.append(SEARCH_PLUGIN_HELP)
+    await matcher.finish(msg)
+
+
+@search_plugins.handle()
+async def search_plugin_func(matcher: Matcher, event: MessageEvent, args: BaseNamespace = ShellCommandArgs()):
+    args: Namespace
+    user_id = event.user_id
+    if not index:
+        await init_index()
+    if not index:
+        await matcher.finish("索引初始化失败，可能是网络问题", at_sender=True)
+        return
+
+    _plugins_list = search_plugins_(
+        keyword=args.keyword,
+        no_tags=args.without_tag,
+        no_name=args.without_name,
+        no_author=args.without_author,
+        no_desc=args.without_desc,
+        percent=args.percent
+    )
+    if _plugins_list:
+        save_pages(list(_plugins_list), user_id, plugin_config.rtfm_page)
         pages = user_pages[user_id]
         msg = get_plugins_message(pages[0], 1, len(pages))
         last_use_plugins_list[user_id] = True
         await matcher.finish(msg + "\n（使用 /page <页码> 查看指定页）")
+    else:
+        await matcher.finish(MessageSegment.text(f"未找到插件 {args.keyword}"), at_sender=True)

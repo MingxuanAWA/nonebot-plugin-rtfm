@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nonebot-plugin-rtfm"
-version = "0.1.0"
+version = "0.2.0"
 description = "A plugin for searching docs in QQ, use NoneBot and OneBot V11"
 authors = ["MingxuanGame <MingxuanGame@outlook.com>"]
 license = "MIT"
